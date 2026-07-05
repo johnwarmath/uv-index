@@ -33,6 +33,8 @@ export interface Task {
   description: string;
   status: TaskStatus;
   percent_complete: number;
+  flow: string;
+  stage: string;
   assigned_to: string | null;
   due_date: string | null;
   created_by: string | null;

@@ -99,7 +99,7 @@ export default function SiteTabs({
         ))}
       </div>
 
-      {tab === 'progress' && <TaskList siteId={siteId} tasks={tasks} isAdmin={isAdmin} />}
+      {tab === 'progress' && <TaskList siteId={siteId} tasks={tasks} checklistItems={checklistItems} isAdmin={isAdmin} />}
       {tab === 'qc' && <QcList siteId={siteId} inspections={inspections} isAdmin={isAdmin} />}
       {tab === 'qaqc' && (
         <QaqcSignoffTab
