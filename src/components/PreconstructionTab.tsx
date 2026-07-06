@@ -23,12 +23,13 @@ export default function PreconstructionTab({
   const [editingContext, setEditingContext] = useState(false);
   const [developer, setDeveloper] = useState(site.developer);
   const [utility, setUtility] = useState(site.utility);
+  const [zipCode, setZipCode] = useState(site.zip_code);
   const [savingContext, setSavingContext] = useState(false);
 
   async function saveContext() {
     setSavingContext(true);
     const supabase = createClient();
-    await supabase.from('sites').update({ developer, utility }).eq('id', site.id);
+    await supabase.from('sites').update({ developer, utility, zip_code: zipCode }).eq('id', site.id);
     setSavingContext(false);
     setEditingContext(false);
     router.refresh();
@@ -156,6 +157,17 @@ export default function PreconstructionTab({
                   className="w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)]"
                 />
               </div>
+              <div>
+                <label className="block text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                  ZIP code (for accurate weather)
+                </label>
+                <input
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  placeholder="79772"
+                  className="w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)]"
+                />
+              </div>
               <div className="sm:col-span-2 flex gap-2">
                 <button
                   onClick={saveContext}
@@ -168,6 +180,7 @@ export default function PreconstructionTab({
                   onClick={() => {
                     setDeveloper(site.developer);
                     setUtility(site.utility);
+                    setZipCode(site.zip_code);
                     setEditingContext(false);
                   }}
                   className="rounded border border-[var(--color-border)] px-3 py-1.5 text-sm text-[var(--color-paper-dim)] hover:bg-[var(--color-bg)]"
@@ -177,12 +190,18 @@ export default function PreconstructionTab({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
                   Location
                 </p>
                 <p>{site.location || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                  ZIP code
+                </p>
+                <p>{site.zip_code || '—'}</p>
               </div>
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">

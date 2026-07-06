@@ -14,6 +14,34 @@ interface GeocodeResult {
 }
 
 /**
+ * Converts a US ZIP code into coordinates using Zippopotam.us (free, no API
+ * key required). Far more precise than geocoding a free-text location like
+ * "Pecos County, TX", especially for rural/unincorporated project sites.
+ */
+export async function geocodeZip(zip: string): Promise<GeocodeResult | null> {
+  const cleaned = zip.trim();
+  if (!cleaned) return null;
+
+  try {
+    const res = await fetch(`https://api.zippopotam.us/us/${encodeURIComponent(cleaned)}`, {
+      next: { revalidate: 86400 }, // ZIP-to-coordinates never changes; cache for a day
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const place = data?.places?.[0];
+    if (!place) return null;
+
+    return {
+      latitude: parseFloat(place.latitude),
+      longitude: parseFloat(place.longitude),
+      displayName: `${place['place name']}, ${place['state abbreviation']} ${data['post code']}`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Converts a free-text location (e.g. "Pecos County, TX") into coordinates
  * using Open-Meteo's free geocoding API (no API key required).
  */

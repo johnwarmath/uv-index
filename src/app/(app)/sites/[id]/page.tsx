@@ -9,7 +9,7 @@ import WeatherForecast from '@/components/WeatherForecast';
 import { SiteStatusBadge } from '@/components/Badges';
 import SiteTabs from '@/components/SiteTabs';
 import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
-import { geocodeLocation, getForecast } from '@/lib/weather';
+import { geocodeZip, geocodeLocation, getForecast } from '@/lib/weather';
 import type {
   Site,
   Task,
@@ -72,7 +72,9 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const progress = computeConstructionPercent(taskList);
   const qaqcOverall = computeQaqcPercent(checklistItemList, signoffResultList);
 
-  const geocode = await geocodeLocation(siteData.location);
+  const geocode = siteData.zip_code
+    ? (await geocodeZip(siteData.zip_code)) ?? (await geocodeLocation(siteData.location))
+    : await geocodeLocation(siteData.location);
   const forecast = geocode ? await getForecast(geocode.latitude, geocode.longitude) : [];
 
   return (

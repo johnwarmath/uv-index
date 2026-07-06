@@ -14,6 +14,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
   // Step 1 fields
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [zipCode, setZipCode] = useState('');
   const [capacity, setCapacity] = useState('');
   const [status, setStatus] = useState<SiteStatus>('planning');
   const [targetDate, setTargetDate] = useState('');
@@ -29,6 +30,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
   function resetAll() {
     setName('');
     setLocation('');
+    setZipCode('');
     setCapacity('');
     setStatus('planning');
     setTargetDate('');
@@ -94,6 +96,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
       .insert({
         name,
         location,
+        zip_code: zipCode,
         capacity_mw: capacity ? parseFloat(capacity) : null,
         status,
         target_completion: targetDate || null,
@@ -180,6 +183,14 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="Pecos County, TX"
+                    className="input"
+                  />
+                </Field>
+                <Field label="ZIP code (for accurate weather)">
+                  <input
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    placeholder="79772"
                     className="input"
                   />
                 </Field>

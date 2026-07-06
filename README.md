@@ -21,7 +21,7 @@ across multiple utility-scale solar sites, with role-based access for your team.
 - **QAQC signoffs**: a structured checklist system seeded from a real construction QAQC template (Flow → Stage → checklist item, e.g. SWPPP → Silt Fencing → "Confirm silt fence is trenched in"). Field crews pick a Flow and Stage, tag the specific location (e.g. "Row 14" or "Pier B-12"), and check off every item as Pass / Fail / N/A, with notes on any failures. Every signoff is saved with full history, expandable to see every item's result.
 - **Installable on iPhone**: the app is a Progressive Web App (PWA) — from Safari on iPhone, tap Share → "Add to Home Screen" to get a real icon that opens full-screen, no App Store needed.
 - **Preconstruction workflow**: a dedicated tab per site for the pre-construction phase — tracks the Developer and Utility for that site, Exhibits (name, type, status: not started / drafted / executed, target date), and Limited Notices to Proceed (description, scope, status: pending / issued / complete). Includes a placeholder panel for AI-generated guidance based on location/developer/utility — the structure is in place, but the actual AI calls aren't wired up yet (see "Extending" below for what's needed to turn that on).
-- **5-day weather forecast**: each site shows high/low temperature, max wind speed, and heat/cold index for the next 5 days, geocoded automatically from the site's location text. Uses Open-Meteo (free, no API key required). Heat index ≥100°F and cold index ≤20°F are flagged, since both affect job-site safety protocols.
+- **5-day weather forecast**: each site shows high/low temperature, max wind speed, and heat/cold index for the next 5 days. Enter a ZIP code (in the New Site form or the Preconstruction tab) for precise geocoding — falls back to the free-text location field if no ZIP is set. Uses Zippopotam.us for ZIP lookup and Open-Meteo for the forecast (both free, no API key required). Heat index ≥100°F and cold index ≤20°F are flagged, since both affect job-site safety protocols.
 
 ## Setup
 
@@ -42,6 +42,7 @@ In the Supabase dashboard, open the **SQL Editor** and run, in order:
 4. `supabase/migrations/0004_qaqc_checklist.sql` — QAQC checklist template (seeded with 239 checklist items across 8 flows / 33 stages), signoffs, and signoff results
 5. `supabase/migrations/0005_task_flow_stage.sql` — adds Flow/Stage columns to tasks, so Progress can be grouped the same way as QAQC
 6. `supabase/migrations/0006_preconstruction.sql` — Developer/Utility fields on sites, Exhibits, and LNTPs
+7. `supabase/migrations/0007_site_zip_code.sql` — adds a ZIP code field to sites for precise weather geocoding
 
 Alternatively, with the Supabase CLI:
 

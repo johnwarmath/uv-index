@@ -20,6 +20,7 @@ export interface Site {
   id: string;
   name: string;
   location: string;
+  zip_code: string;
   capacity_mw: number | null;
   status: SiteStatus;
   target_completion: string | null;
