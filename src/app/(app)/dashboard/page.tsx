@@ -2,10 +2,19 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile } from '@/lib/auth';
 import Link from 'next/link';
 import PanelStrip from '@/components/PanelStrip';
-import { SiteStatusBadge, IncidentSeverityBadge } from '@/components/Badges';
-import { ArrowUpRight, ShieldAlert, ClipboardCheck, MapPin, TrendingUp } from 'lucide-react';
+import { SiteStatusBadge, IncidentSeverityBadge, LessonTypeBadge } from '@/components/Badges';
+import { ArrowUpRight, ShieldAlert, ClipboardCheck, MapPin, TrendingUp, Lightbulb } from 'lucide-react';
 import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
-import type { Site, Task, SafetyIncident, QcInspection, QaqcChecklistItem, QaqcSignoff, QaqcSignoffResult } from '@/types';
+import type {
+  Site,
+  Task,
+  SafetyIncident,
+  QcInspection,
+  QaqcChecklistItem,
+  QaqcSignoff,
+  QaqcSignoffResult,
+  LessonLearned,
+} from '@/types';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -18,6 +27,7 @@ export default async function DashboardPage() {
     { data: qc },
     { data: checklistItems },
     { data: signoffs },
+    { data: lessons },
   ] = await Promise.all([
     supabase.from('sites').select('*').order('created_at', { ascending: false }),
     supabase.from('tasks').select('*'),
@@ -25,6 +35,7 @@ export default async function DashboardPage() {
     supabase.from('qc_inspections').select('*'),
     supabase.from('qaqc_checklist_items').select('*'),
     supabase.from('qaqc_signoffs').select('*'),
+    supabase.from('lessons_learned').select('*').order('created_at', { ascending: false }),
   ]);
 
   const signoffIds = (signoffs ?? []).map((s) => s.id);
@@ -33,12 +44,16 @@ export default async function DashboardPage() {
       ? await supabase.from('qaqc_signoff_results').select('*').in('signoff_id', signoffIds)
       : { data: [] };
 
-  const siteList = (sites ?? []) as Site[];
-  const taskList = (tasks ?? []) as Task[];
-  const incidentList = (incidents ?? []) as SafetyIncident[];
-  const qcList = (qc ?? []) as QcInspection[];
+  const allSites = (sites ?? []) as Site[];
+  const activeSites = allSites.filter((s) => !s.archived);
+  const activeSiteIds = new Set(activeSites.map((s) => s.id));
+
+  const taskList = ((tasks ?? []) as Task[]).filter((t) => activeSiteIds.has(t.site_id));
+  const incidentList = ((incidents ?? []) as SafetyIncident[]).filter((i) => activeSiteIds.has(i.site_id));
+  const qcList = ((qc ?? []) as QcInspection[]).filter((q) => activeSiteIds.has(q.site_id));
+  const lessonList = ((lessons ?? []) as LessonLearned[]).filter((l) => activeSiteIds.has(l.site_id));
   const checklistItemList = (checklistItems ?? []) as QaqcChecklistItem[];
-  const signoffList = (signoffs ?? []) as QaqcSignoff[];
+  const signoffList = ((signoffs ?? []) as QaqcSignoff[]).filter((s) => activeSiteIds.has(s.site_id));
   const signoffResultList = (signoffResults ?? []) as QaqcSignoffResult[];
 
   const avgProgress = computeConstructionPercent(taskList);
@@ -47,7 +62,8 @@ export default async function DashboardPage() {
   const qcFailRate = qcList.length
     ? Math.round((qcList.filter((q) => q.result === 'fail').length / qcList.length) * 100)
     : 0;
-  const recentIncidents = incidentList.slice(0, 5);
+  const recentIncidents = incidentList.slice(0, 4);
+  const recentLessons = lessonList.slice(0, 4);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl">
@@ -62,7 +78,7 @@ export default async function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <StatCard icon={MapPin} label="Active sites" value={siteList.length.toString()} />
+        <StatCard icon={MapPin} label="Active sites" value={activeSites.length.toString()} />
         <StatCard icon={TrendingUp} label="Avg. construction" value={`${avgProgress}%`} />
         <StatCard icon={ClipboardCheck} label="Avg. QAQC signoff" value={`${avgQaqc}%`} />
         <StatCard
@@ -89,10 +105,10 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-3">
-            {siteList.length === 0 && (
-              <EmptyState text="No sites yet. Add your first solar site to start tracking." />
+            {activeSites.length === 0 && (
+              <EmptyState text="No active sites. Add your first solar site to start tracking." />
             )}
-            {siteList.slice(0, 5).map((site) => {
+            {activeSites.slice(0, 5).map((site) => {
               const siteTasks = taskList.filter((t) => t.site_id === site.id);
               const siteSignoffIds = signoffList.filter((s) => s.site_id === site.id).map((s) => s.id);
               const siteSignoffResults = signoffResultList.filter((r) => siteSignoffIds.includes(r.signoff_id));
@@ -133,30 +149,61 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent incidents */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-semibold">Recent incidents</h2>
-            <Link href="/incidents" className="text-sm text-[var(--color-amber)] hover:underline flex items-center gap-1">
-              View all <ArrowUpRight size={14} />
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {recentIncidents.length === 0 && <EmptyState text="No incidents logged. That's a good sign." />}
-            {recentIncidents.map((inc) => (
-              <div
-                key={inc.id}
-                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4"
-              >
-                <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <p className="text-sm font-medium leading-snug">{inc.title}</p>
-                  <IncidentSeverityBadge severity={inc.severity} />
+        {/* Recent incidents + lessons learned */}
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-lg font-semibold">Recent incidents</h2>
+              <Link href="/incidents" className="text-sm text-[var(--color-amber)] hover:underline flex items-center gap-1">
+                View all <ArrowUpRight size={14} />
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {recentIncidents.length === 0 && <EmptyState text="No incidents logged. That's a good sign." />}
+              {recentIncidents.map((inc) => (
+                <div
+                  key={inc.id}
+                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <p className="text-sm font-medium leading-snug">{inc.title}</p>
+                    <IncidentSeverityBadge severity={inc.severity} />
+                  </div>
+                  <p className="text-xs text-[var(--color-paper-dim)] font-mono">
+                    {new Date(inc.occurred_at).toLocaleDateString()}
+                  </p>
                 </div>
-                <p className="text-xs text-[var(--color-paper-dim)] font-mono">
-                  {new Date(inc.occurred_at).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-lg font-semibold">Lessons learned</h2>
+              <Link href="/lessons" className="text-sm text-[var(--color-amber)] hover:underline flex items-center gap-1">
+                View all <ArrowUpRight size={14} />
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {recentLessons.length === 0 && <EmptyState text="No lessons logged yet." />}
+              {recentLessons.map((lesson) => (
+                <div
+                  key={lesson.id}
+                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <p className="text-sm font-medium leading-snug flex items-center gap-1.5">
+                      <Lightbulb size={12} className="text-[var(--color-amber)] shrink-0" />
+                      {lesson.title}
+                    </p>
+                    <LessonTypeBadge type={lesson.type} />
+                  </div>
+                  <p className="text-xs text-[var(--color-paper-dim)] font-mono">
+                    {new Date(lesson.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

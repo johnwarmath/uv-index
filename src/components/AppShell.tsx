@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { LayoutDashboard, Sun, ShieldAlert, MapPin, LogOut, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Sun, ShieldAlert, MapPin, LogOut, ShieldCheck, Lightbulb } from 'lucide-react';
 import type { Profile } from '@/types';
 
 const nav = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/sites', label: 'Sites', icon: MapPin },
   { href: '/incidents', label: 'Safety', icon: ShieldAlert },
+  { href: '/lessons', label: 'Lessons', icon: Lightbulb },
 ];
 
 export default function AppShell({

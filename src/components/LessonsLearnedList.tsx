@@ -12,10 +12,14 @@ export default function LessonsLearnedList({
   siteId,
   lessons,
   isAdmin,
+  showSiteName = false,
+  siteNames,
 }: {
-  siteId: string;
-  lessons: LessonLearned[];
+  siteId?: string;
+  lessons: (LessonLearned & { site_name?: string })[];
   isAdmin: boolean;
+  showSiteName?: boolean;
+  siteNames?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -24,6 +28,7 @@ export default function LessonsLearnedList({
   const [category, setCategory] = useState('general');
   const [description, setDescription] = useState('');
   const [recommendation, setRecommendation] = useState('');
+  const [targetSite, setTargetSite] = useState(siteId || siteNames?.[0]?.id || '');
   const [photo, setPhoto] = useState<PhotoCaptureResult>({ photo_url: null, latitude: null, longitude: null });
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +40,7 @@ export default function LessonsLearnedList({
       data: { user },
     } = await supabase.auth.getUser();
     await supabase.from('lessons_learned').insert({
-      site_id: siteId,
+      site_id: siteId || targetSite,
       title,
       type,
       category,
@@ -79,6 +84,24 @@ export default function LessonsLearnedList({
           onSubmit={handleAdd}
           className="mb-4 space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3"
         >
+          {!siteId && siteNames && (
+            <div>
+              <label className="block text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                Site
+              </label>
+              <select
+                value={targetSite}
+                onChange={(e) => setTargetSite(e.target.value)}
+                className="w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)]"
+              >
+                {siteNames.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
               What happened
@@ -191,6 +214,7 @@ export default function LessonsLearnedList({
                     {lesson.title}
                   </p>
                   <p className="text-xs text-[var(--color-paper-dim)] mt-0.5">
+                    {showSiteName && lesson.site_name ? `${lesson.site_name} · ` : ''}
                     {lesson.category} · {new Date(lesson.created_at).toLocaleDateString()}
                   </p>
                 </div>

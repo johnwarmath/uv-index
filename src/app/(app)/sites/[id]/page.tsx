@@ -7,6 +7,7 @@ import PanelStrip from '@/components/PanelStrip';
 import StageProgressBreakdown from '@/components/StageProgressBreakdown';
 import WeatherForecast from '@/components/WeatherForecast';
 import { SiteStatusBadge } from '@/components/Badges';
+import ArchiveSiteButton from '@/components/ArchiveSiteButton';
 import SiteTabs from '@/components/SiteTabs';
 import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
 import { geocodeZip, geocodeLocation, getForecast } from '@/lib/weather';
@@ -88,8 +89,18 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
 
       <div className="mb-8">
         <div className="flex items-start justify-between gap-4 mb-3">
-          <h1 className="font-display text-3xl font-semibold">{siteData.name}</h1>
-          <SiteStatusBadge status={siteData.status} />
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-3xl font-semibold">{siteData.name}</h1>
+            {siteData.archived && (
+              <span className="rounded border border-[var(--color-blocked)]/40 bg-[var(--color-blocked)]/20 px-2 py-0.5 text-xs font-medium text-[var(--color-blocked)]">
+                Archived
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <SiteStatusBadge status={siteData.status} />
+            <ArchiveSiteButton siteId={siteData.id} archived={siteData.archived} />
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-paper-dim)] mb-5">
           {siteData.location && (
