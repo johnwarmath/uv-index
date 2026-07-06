@@ -36,7 +36,7 @@ export default async function SitesPage() {
           </p>
           <h1 className="font-display text-3xl font-semibold">Sites</h1>
         </div>
-        <NewSiteButton />
+        <NewSiteButton checklistItems={checklistItemList} />
       </div>
 
       {siteList.length === 0 ? (

@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { ArrowLeft, MapPin, Zap, Calendar } from 'lucide-react';
 import PanelStrip from '@/components/PanelStrip';
 import StageProgressBreakdown from '@/components/StageProgressBreakdown';
+import WeatherForecast from '@/components/WeatherForecast';
 import { SiteStatusBadge } from '@/components/Badges';
 import SiteTabs from '@/components/SiteTabs';
 import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
+import { geocodeLocation, getForecast } from '@/lib/weather';
 import type {
   Site,
   Task,
@@ -70,6 +72,9 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const progress = computeConstructionPercent(taskList);
   const qaqcOverall = computeQaqcPercent(checklistItemList, signoffResultList);
 
+  const geocode = await geocodeLocation(siteData.location);
+  const forecast = geocode ? await getForecast(geocode.latitude, geocode.longitude) : [];
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
       <Link
@@ -118,6 +123,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
+
+      <WeatherForecast forecast={forecast} locationLabel={geocode?.displayName ?? null} />
 
       <StageProgressBreakdown checklistItems={checklistItemList} tasks={taskList} signoffResults={signoffResultList} />
 
