@@ -19,6 +19,7 @@ across multiple utility-scale solar sites, with role-based access for your team.
 - **Photo capture with geolocation**: attaching a photo to a QC inspection or incident report grabs the device's GPS location at that moment (via the browser Geolocation API — the user's browser will prompt for permission). Photos upload to Supabase Storage; each site has a **Map** tab plotting every geotagged QC check and incident.
 - **Lessons learned**: a per-site log for capturing what went well and what to improve, with a category, description, and a recommendation for future projects. Supports the same photo + geolocation capture.
 - **QAQC signoffs**: a structured checklist system seeded from a real construction QAQC template (Flow → Stage → checklist item, e.g. SWPPP → Silt Fencing → "Confirm silt fence is trenched in"). Field crews pick a Flow and Stage, tag the specific location (e.g. "Row 14" or "Pier B-12"), and check off every item as Pass / Fail / N/A, with notes on any failures. Every signoff is saved with full history, expandable to see every item's result.
+- **Installable on iPhone**: the app is a Progressive Web App (PWA) — from Safari on iPhone, tap Share → "Add to Home Screen" to get a real icon that opens full-screen, no App Store needed.
 
 ## Setup
 
