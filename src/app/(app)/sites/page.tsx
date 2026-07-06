@@ -3,17 +3,29 @@ import Link from 'next/link';
 import PanelStrip from '@/components/PanelStrip';
 import { SiteStatusBadge } from '@/components/Badges';
 import NewSiteButton from '@/components/NewSiteButton';
-import type { Site, Task } from '@/types';
+import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
+import type { Site, Task, QaqcChecklistItem, QaqcSignoff, QaqcSignoffResult } from '@/types';
 
 export default async function SitesPage() {
   const supabase = await createClient();
-  const [{ data: sites }, { data: tasks }] = await Promise.all([
+  const [{ data: sites }, { data: tasks }, { data: checklistItems }, { data: signoffs }] = await Promise.all([
     supabase.from('sites').select('*').order('created_at', { ascending: false }),
     supabase.from('tasks').select('*'),
+    supabase.from('qaqc_checklist_items').select('*'),
+    supabase.from('qaqc_signoffs').select('*'),
   ]);
+
+  const signoffIds = (signoffs ?? []).map((s) => s.id);
+  const { data: signoffResults } =
+    signoffIds.length > 0
+      ? await supabase.from('qaqc_signoff_results').select('*').in('signoff_id', signoffIds)
+      : { data: [] };
 
   const siteList = (sites ?? []) as Site[];
   const taskList = (tasks ?? []) as Task[];
+  const checklistItemList = (checklistItems ?? []) as QaqcChecklistItem[];
+  const signoffList = (signoffs ?? []) as QaqcSignoff[];
+  const signoffResultList = (signoffResults ?? []) as QaqcSignoffResult[];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl">
@@ -36,9 +48,10 @@ export default async function SitesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {siteList.map((site) => {
             const siteTasks = taskList.filter((t) => t.site_id === site.id);
-            const progress = siteTasks.length
-              ? Math.round(siteTasks.reduce((s, t) => s + t.percent_complete, 0) / siteTasks.length)
-              : 0;
+            const siteSignoffIds = signoffList.filter((s) => s.site_id === site.id).map((s) => s.id);
+            const siteSignoffResults = signoffResultList.filter((r) => siteSignoffIds.includes(r.signoff_id));
+            const constructionPercent = computeConstructionPercent(siteTasks);
+            const qaqcPercent = computeQaqcPercent(checklistItemList, siteSignoffResults);
             return (
               <Link
                 key={site.id}
@@ -52,9 +65,19 @@ export default async function SitesPage() {
                   </div>
                   <SiteStatusBadge status={site.status} />
                 </div>
-                <div className="flex items-center gap-3 mb-3">
-                  <PanelStrip percent={progress} />
-                  <span className="font-mono text-xs text-[var(--color-paper-dim)] shrink-0">{progress}%</span>
+                <div className="space-y-1.5 mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-[var(--color-paper-dim)] w-14 shrink-0">CNSTR</span>
+                    <PanelStrip percent={constructionPercent} />
+                    <span className="font-mono text-xs text-[var(--color-paper-dim)] shrink-0 w-8">
+                      {constructionPercent}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-[var(--color-paper-dim)] w-14 shrink-0">QAQC</span>
+                    <PanelStrip percent={qaqcPercent} />
+                    <span className="font-mono text-xs text-[var(--color-paper-dim)] shrink-0 w-8">{qaqcPercent}%</span>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between text-xs text-[var(--color-paper-dim)] font-mono">
                   <span>{site.capacity_mw ? `${site.capacity_mw} MW` : '—'}</span>

@@ -4,27 +4,45 @@ import Link from 'next/link';
 import PanelStrip from '@/components/PanelStrip';
 import { SiteStatusBadge, IncidentSeverityBadge } from '@/components/Badges';
 import { ArrowUpRight, ShieldAlert, ClipboardCheck, MapPin, TrendingUp } from 'lucide-react';
-import type { Site, Task, SafetyIncident, QcInspection } from '@/types';
+import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
+import type { Site, Task, SafetyIncident, QcInspection, QaqcChecklistItem, QaqcSignoff, QaqcSignoffResult } from '@/types';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
 
-  const [{ data: sites }, { data: tasks }, { data: incidents }, { data: qc }] = await Promise.all([
+  const [
+    { data: sites },
+    { data: tasks },
+    { data: incidents },
+    { data: qc },
+    { data: checklistItems },
+    { data: signoffs },
+  ] = await Promise.all([
     supabase.from('sites').select('*').order('created_at', { ascending: false }),
     supabase.from('tasks').select('*'),
     supabase.from('safety_incidents').select('*').order('occurred_at', { ascending: false }),
     supabase.from('qc_inspections').select('*'),
+    supabase.from('qaqc_checklist_items').select('*'),
+    supabase.from('qaqc_signoffs').select('*'),
   ]);
+
+  const signoffIds = (signoffs ?? []).map((s) => s.id);
+  const { data: signoffResults } =
+    signoffIds.length > 0
+      ? await supabase.from('qaqc_signoff_results').select('*').in('signoff_id', signoffIds)
+      : { data: [] };
 
   const siteList = (sites ?? []) as Site[];
   const taskList = (tasks ?? []) as Task[];
   const incidentList = (incidents ?? []) as SafetyIncident[];
   const qcList = (qc ?? []) as QcInspection[];
+  const checklistItemList = (checklistItems ?? []) as QaqcChecklistItem[];
+  const signoffList = (signoffs ?? []) as QaqcSignoff[];
+  const signoffResultList = (signoffResults ?? []) as QaqcSignoffResult[];
 
-  const avgProgress = taskList.length
-    ? Math.round(taskList.reduce((sum, t) => sum + t.percent_complete, 0) / taskList.length)
-    : 0;
+  const avgProgress = computeConstructionPercent(taskList);
+  const avgQaqc = computeQaqcPercent(checklistItemList, signoffResultList);
   const openIncidents = incidentList.filter((i) => i.status === 'open' || i.status === 'investigating');
   const qcFailRate = qcList.length
     ? Math.round((qcList.filter((q) => q.result === 'fail').length / qcList.length) * 100)
@@ -43,9 +61,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <StatCard icon={MapPin} label="Active sites" value={siteList.length.toString()} />
-        <StatCard icon={TrendingUp} label="Avg. progress" value={`${avgProgress}%`} />
+        <StatCard icon={TrendingUp} label="Avg. construction" value={`${avgProgress}%`} />
+        <StatCard icon={ClipboardCheck} label="Avg. QAQC signoff" value={`${avgQaqc}%`} />
         <StatCard
           icon={ShieldAlert}
           label="Open incidents"
@@ -75,25 +94,38 @@ export default async function DashboardPage() {
             )}
             {siteList.slice(0, 5).map((site) => {
               const siteTasks = taskList.filter((t) => t.site_id === site.id);
-              const progress = siteTasks.length
-                ? Math.round(siteTasks.reduce((s, t) => s + t.percent_complete, 0) / siteTasks.length)
-                : 0;
+              const siteSignoffIds = signoffList.filter((s) => s.site_id === site.id).map((s) => s.id);
+              const siteSignoffResults = signoffResultList.filter((r) => siteSignoffIds.includes(r.signoff_id));
+              const constructionPercent = computeConstructionPercent(siteTasks);
+              const qaqcPercent = computeQaqcPercent(checklistItemList, siteSignoffResults);
               return (
                 <Link
                   key={site.id}
                   href={`/sites/${site.id}`}
                   className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 hover:border-[var(--color-amber)]/50 transition"
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between mb-3">
                     <div>
                       <p className="font-display font-semibold">{site.name}</p>
                       <p className="text-xs text-[var(--color-paper-dim)]">{site.location || 'No location set'}</p>
                     </div>
                     <SiteStatusBadge status={site.status} />
                   </div>
-                  <div className="flex items-center gap-3">
-                    <PanelStrip percent={progress} />
-                    <span className="font-mono text-xs text-[var(--color-paper-dim)] shrink-0">{progress}%</span>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono text-[var(--color-paper-dim)] w-14 shrink-0">CNSTR</span>
+                      <PanelStrip percent={constructionPercent} />
+                      <span className="font-mono text-xs text-[var(--color-paper-dim)] shrink-0 w-8">
+                        {constructionPercent}%
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono text-[var(--color-paper-dim)] w-14 shrink-0">QAQC</span>
+                      <PanelStrip percent={qaqcPercent} />
+                      <span className="font-mono text-xs text-[var(--color-paper-dim)] shrink-0 w-8">
+                        {qaqcPercent}%
+                      </span>
+                    </div>
                   </div>
                 </Link>
               );

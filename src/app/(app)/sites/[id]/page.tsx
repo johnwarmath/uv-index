@@ -4,8 +4,10 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Zap, Calendar } from 'lucide-react';
 import PanelStrip from '@/components/PanelStrip';
+import StageProgressBreakdown from '@/components/StageProgressBreakdown';
 import { SiteStatusBadge } from '@/components/Badges';
 import SiteTabs from '@/components/SiteTabs';
+import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
 import type {
   Site,
   Task,
@@ -65,9 +67,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const exhibitList = (exhibits ?? []) as Exhibit[];
   const lntpList = (lntps ?? []) as Lntp[];
 
-  const progress = taskList.length
-    ? Math.round(taskList.reduce((s, t) => s + t.percent_complete, 0) / taskList.length)
-    : 0;
+  const progress = computeConstructionPercent(taskList);
+  const qaqcOverall = computeQaqcPercent(checklistItemList, signoffResultList);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
@@ -100,11 +101,25 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3 max-w-sm">
-          <PanelStrip percent={progress} />
-          <span className="font-mono text-sm text-[var(--color-paper-dim)] shrink-0">{progress}% complete</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 max-w-xl">
+          <div className="flex items-center gap-3 flex-1">
+            <span className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] shrink-0 w-16">
+              Construction
+            </span>
+            <PanelStrip percent={progress} />
+            <span className="font-mono text-sm text-[var(--color-paper-dim)] shrink-0">{progress}%</span>
+          </div>
+          <div className="flex items-center gap-3 flex-1">
+            <span className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] shrink-0 w-16">
+              QAQC
+            </span>
+            <PanelStrip percent={qaqcOverall} />
+            <span className="font-mono text-sm text-[var(--color-paper-dim)] shrink-0">{qaqcOverall}%</span>
+          </div>
         </div>
       </div>
+
+      <StageProgressBreakdown checklistItems={checklistItemList} tasks={taskList} signoffResults={signoffResultList} />
 
       <SiteTabs
         site={siteData}
