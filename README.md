@@ -23,6 +23,7 @@ across multiple utility-scale solar sites, with role-based access for your team.
 - **Preconstruction workflow**: a dedicated tab per site for the pre-construction phase — tracks the Developer and Utility for that site, Exhibits (name, type, status: not started / drafted / executed, target date), and Limited Notices to Proceed (description, scope, status: pending / issued / complete). Includes a placeholder panel for AI-generated guidance based on location/developer/utility — the structure is in place, but the actual AI calls aren't wired up yet (see "Extending" below for what's needed to turn that on).
 - **5-day weather forecast**: each site shows high/low temperature, max wind speed, and heat/cold index for the next 5 days. Enter a ZIP code (in the New Site form or the Preconstruction tab) for precise geocoding — falls back to the free-text location field if no ZIP is set. Uses Zippopotam.us for ZIP lookup and Open-Meteo for the forecast (both free, no API key required). Heat index ≥100°F and cold index ≤20°F are flagged, since both affect job-site safety protocols.
 - **Archive sites**: any site can be archived (button in its header) without deleting its data — archived sites drop out of the Sites list, Dashboard, and all aggregate stats by default, with a link to view them separately. Restorable at any time.
+- **Edit sites after creation**: an "Edit site" button in the site header opens every site field for editing — name, location, ZIP, capacity, status, target date, and the three project parties: Developer, EPC, and Utility. All three can also be set at creation time.
 - **Lessons learned, portfolio-wide**: a dedicated "Lessons" page (like Safety Incidents) shows every lesson across all sites, and the Dashboard has a "Recent lessons learned" panel alongside Recent incidents.
 
 ## Setup
@@ -46,6 +47,7 @@ In the Supabase dashboard, open the **SQL Editor** and run, in order:
 6. `supabase/migrations/0006_preconstruction.sql` — Developer/Utility fields on sites, Exhibits, and LNTPs
 7. `supabase/migrations/0007_site_zip_code.sql` — adds a ZIP code field to sites for precise weather geocoding
 8. `supabase/migrations/0008_site_archive.sql` — adds an archived flag to sites
+9. `supabase/migrations/0009_site_epc.sql` — adds an EPC (contractor) field to sites
 
 Alternatively, with the Supabase CLI:
 

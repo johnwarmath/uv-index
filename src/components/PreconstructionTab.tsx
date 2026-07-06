@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, Trash2, Sparkles, Pencil, Check } from 'lucide-react';
+import { Plus, Trash2, Sparkles } from 'lucide-react';
 import type { Site, Exhibit, ExhibitStatus, Lntp, LntpStatus } from '@/types';
 
 export default function PreconstructionTab({
@@ -18,22 +18,6 @@ export default function PreconstructionTab({
   isAdmin: boolean;
 }) {
   const router = useRouter();
-
-  // ---- Developer / Utility context ----
-  const [editingContext, setEditingContext] = useState(false);
-  const [developer, setDeveloper] = useState(site.developer);
-  const [utility, setUtility] = useState(site.utility);
-  const [zipCode, setZipCode] = useState(site.zip_code);
-  const [savingContext, setSavingContext] = useState(false);
-
-  async function saveContext() {
-    setSavingContext(true);
-    const supabase = createClient();
-    await supabase.from('sites').update({ developer, utility, zip_code: zipCode }).eq('id', site.id);
-    setSavingContext(false);
-    setEditingContext(false);
-    router.refresh();
-  }
 
   // ---- Exhibits ----
   const [exhibitOpen, setExhibitOpen] = useState(false);
@@ -119,104 +103,42 @@ export default function PreconstructionTab({
 
   return (
     <div className="space-y-8">
-      {/* Developer / Utility context */}
+      {/* Project context (read-only; edit via "Edit site" button at the top of the page) */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-base font-semibold">Project context</h3>
-          {!editingContext && (
-            <button
-              onClick={() => setEditingContext(true)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--color-bg-card)] transition"
-            >
-              <Pencil size={13} /> Edit
-            </button>
-          )}
-        </div>
+        <h3 className="font-display text-base font-semibold mb-3">Project context</h3>
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4">
-          {editingContext ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
-                  Developer
-                </label>
-                <input
-                  value={developer}
-                  onChange={(e) => setDeveloper(e.target.value)}
-                  placeholder="e.g. Lightsource bp"
-                  className="w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)]"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
-                  Utility
-                </label>
-                <input
-                  value={utility}
-                  onChange={(e) => setUtility(e.target.value)}
-                  placeholder="e.g. Oncor Electric Delivery"
-                  className="w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)]"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
-                  ZIP code (for accurate weather)
-                </label>
-                <input
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  placeholder="79772"
-                  className="w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)]"
-                />
-              </div>
-              <div className="sm:col-span-2 flex gap-2">
-                <button
-                  onClick={saveContext}
-                  disabled={savingContext}
-                  className="inline-flex items-center gap-1.5 rounded bg-[var(--color-amber)] px-3 py-1.5 text-sm font-semibold text-[var(--color-bg)] hover:brightness-105 disabled:opacity-60"
-                >
-                  <Check size={14} /> {savingContext ? 'Saving…' : 'Save'}
-                </button>
-                <button
-                  onClick={() => {
-                    setDeveloper(site.developer);
-                    setUtility(site.utility);
-                    setZipCode(site.zip_code);
-                    setEditingContext(false);
-                  }}
-                  className="rounded border border-[var(--color-border)] px-3 py-1.5 text-sm text-[var(--color-paper-dim)] hover:bg-[var(--color-bg)]"
-                >
-                  Cancel
-                </button>
-              </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                Location
+              </p>
+              <p>{site.location || '—'}</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
-              <div>
-                <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
-                  Location
-                </p>
-                <p>{site.location || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
-                  ZIP code
-                </p>
-                <p>{site.zip_code || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
-                  Developer
-                </p>
-                <p>{site.developer || '—'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
-                  Utility
-                </p>
-                <p>{site.utility || '—'}</p>
-              </div>
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                ZIP code
+              </p>
+              <p>{site.zip_code || '—'}</p>
             </div>
-          )}
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                Developer
+              </p>
+              <p>{site.developer || '—'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                EPC
+              </p>
+              <p>{site.epc || '—'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                Utility
+              </p>
+              <p>{site.utility || '—'}</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -229,7 +151,7 @@ export default function PreconstructionTab({
             <p className="text-xs text-[var(--color-paper-dim)]">
               Once connected, this will suggest a typical Exhibit/LNTP checklist and answer questions
               using this site&apos;s location ({site.location || 'not set'}), developer ({site.developer || 'not set'}),
-              and utility ({site.utility || 'not set'}) as context.
+              EPC ({site.epc || 'not set'}), and utility ({site.utility || 'not set'}) as context.
             </p>
           </div>
         </div>

@@ -8,6 +8,7 @@ import StageProgressBreakdown from '@/components/StageProgressBreakdown';
 import WeatherForecast from '@/components/WeatherForecast';
 import { SiteStatusBadge } from '@/components/Badges';
 import ArchiveSiteButton from '@/components/ArchiveSiteButton';
+import EditSiteButton from '@/components/EditSiteButton';
 import SiteTabs from '@/components/SiteTabs';
 import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
 import { geocodeZip, geocodeLocation, getForecast } from '@/lib/weather';
@@ -99,6 +100,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <SiteStatusBadge status={siteData.status} />
+            <EditSiteButton site={siteData} />
             <ArchiveSiteButton siteId={siteData.id} archived={siteData.archived} />
           </div>
         </div>

@@ -18,6 +18,9 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
   const [capacity, setCapacity] = useState('');
   const [status, setStatus] = useState<SiteStatus>('planning');
   const [targetDate, setTargetDate] = useState('');
+  const [developer, setDeveloper] = useState('');
+  const [epc, setEpc] = useState('');
+  const [utility, setUtility] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   // Step 2: selected checklist item ids -> become tasks
@@ -34,6 +37,9 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
     setCapacity('');
     setStatus('planning');
     setTargetDate('');
+    setDeveloper('');
+    setEpc('');
+    setUtility('');
     setSelected(new Set());
     setStep('details');
     setError(null);
@@ -100,6 +106,9 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
         capacity_mw: capacity ? parseFloat(capacity) : null,
         status,
         target_completion: targetDate || null,
+        developer,
+        epc,
+        utility,
         created_by: user?.id,
       })
       .select()
@@ -223,6 +232,38 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
                     className="input"
                   />
                 </Field>
+
+                <div className="pt-2 border-t border-[var(--color-border)]">
+                  <p className="text-xs font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-3 pt-3">
+                    Project parties (optional)
+                  </p>
+                  <div className="space-y-3">
+                    <Field label="Developer">
+                      <input
+                        value={developer}
+                        onChange={(e) => setDeveloper(e.target.value)}
+                        placeholder="e.g. Lightsource bp"
+                        className="input"
+                      />
+                    </Field>
+                    <Field label="EPC">
+                      <input
+                        value={epc}
+                        onChange={(e) => setEpc(e.target.value)}
+                        placeholder="e.g. McCarthy Building Companies"
+                        className="input"
+                      />
+                    </Field>
+                    <Field label="Utility">
+                      <input
+                        value={utility}
+                        onChange={(e) => setUtility(e.target.value)}
+                        placeholder="e.g. Oncor Electric Delivery"
+                        className="input"
+                      />
+                    </Field>
+                  </div>
+                </div>
 
                 {error && (
                   <p className="text-sm text-[var(--color-incident-bright)] bg-[var(--color-incident)]/10 border border-[var(--color-incident)]/30 rounded-md px-3 py-2">

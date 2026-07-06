@@ -26,6 +26,7 @@ export interface Site {
   target_completion: string | null;
   developer: string;
   utility: string;
+  epc: string;
   archived: boolean;
   created_by: string | null;
   created_at: string;
