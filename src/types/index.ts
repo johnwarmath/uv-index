@@ -5,6 +5,8 @@ export type QcResult = 'pass' | 'fail' | 'na';
 export type IncidentSeverity = 'near_miss' | 'minor' | 'serious' | 'critical';
 export type IncidentStatus = 'open' | 'investigating' | 'resolved' | 'closed';
 export type LessonType = 'went_well' | 'improvement_area';
+export type ExhibitStatus = 'not_started' | 'drafted' | 'executed';
+export type LntpStatus = 'pending' | 'issued' | 'complete';
 
 export interface Profile {
   id: string;
@@ -21,6 +23,8 @@ export interface Site {
   capacity_mw: number | null;
   status: SiteStatus;
   target_completion: string | null;
+  developer: string;
+  utility: string;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -117,4 +121,30 @@ export interface QaqcSignoffResult {
   checklist_item_id: string;
   result: QcResult;
   notes: string;
+}
+
+export interface Exhibit {
+  id: string;
+  site_id: string;
+  name: string;
+  type: string;
+  status: ExhibitStatus;
+  target_date: string | null;
+  notes: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Lntp {
+  id: string;
+  site_id: string;
+  description: string;
+  scope: string;
+  date_issued: string | null;
+  status: LntpStatus;
+  notes: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
 }

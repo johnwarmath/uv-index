@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { LayoutDashboard, Sun, ShieldAlert, ClipboardCheck, MapPin, LogOut, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Sun, ShieldAlert, MapPin, LogOut, ShieldCheck } from 'lucide-react';
 import type { Profile } from '@/types';
 
 const nav = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/sites', label: 'Sites', icon: MapPin },
-  { href: '/incidents', label: 'Safety incidents', icon: ShieldAlert },
+  { href: '/incidents', label: 'Safety', icon: ShieldAlert },
 ];
 
 export default function AppShell({
@@ -29,9 +29,14 @@ export default function AppShell({
     router.refresh();
   }
 
+  function isActive(href: string) {
+    return pathname === href || pathname.startsWith(href + '/');
+  }
+
   return (
     <div className="flex min-h-screen">
-      <aside className="w-60 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-bg-raised)] flex flex-col">
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-60 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-bg-raised)] flex-col">
         <div className="h-16 flex items-center gap-2.5 px-5 border-b border-[var(--color-border)]">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--color-amber)]">
             <Sun size={16} className="text-[var(--color-bg)]" strokeWidth={2.5} />
@@ -41,7 +46,7 @@ export default function AppShell({
 
         <nav className="flex-1 px-3 py-4 space-y-1">
           {nav.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(item.href + '/');
+            const active = isActive(item.href);
             const Icon = item.icon;
             return (
               <Link
@@ -54,7 +59,7 @@ export default function AppShell({
                 }`}
               >
                 <Icon size={16} strokeWidth={2} />
-                {item.label}
+                {item.label === 'Safety' ? 'Safety incidents' : item.label}
               </Link>
             );
           })}
@@ -83,7 +88,47 @@ export default function AppShell({
         </div>
       </aside>
 
-      <main className="flex-1 overflow-x-hidden">{children}</main>
+      {/* Mobile top bar */}
+      <header className="md:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 border-b border-[var(--color-border)] bg-[var(--color-bg-raised)]/95 backdrop-blur">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-amber)]">
+            <Sun size={14} className="text-[var(--color-bg)]" strokeWidth={2.5} />
+          </div>
+          <span className="font-display text-base font-semibold tracking-tight">UV Index</span>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-working)] text-xs font-semibold font-display shrink-0"
+          aria-label="Sign out"
+        >
+          {profile.full_name?.[0]?.toUpperCase() || profile.email[0].toUpperCase()}
+        </button>
+      </header>
+
+      {/* Mobile bottom tab bar */}
+      <nav
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch justify-around border-t border-[var(--color-border)] bg-[var(--color-bg-raised)]/95 backdrop-blur"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {nav.map((item) => {
+          const active = isActive(item.href);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] transition ${
+                active ? 'text-[var(--color-amber)]' : 'text-[var(--color-paper-dim)]'
+              }`}
+            >
+              <Icon size={20} strokeWidth={active ? 2.4 : 2} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <main className="flex-1 overflow-x-hidden pt-14 pb-16 md:pt-0 md:pb-0">{children}</main>
     </div>
   );
 }

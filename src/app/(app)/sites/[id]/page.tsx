@@ -15,6 +15,8 @@ import type {
   QaqcChecklistItem,
   QaqcSignoff,
   QaqcSignoffResult,
+  Exhibit,
+  Lntp,
 } from '@/types';
 
 export default async function SiteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,6 +32,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
     { data: lessons },
     { data: checklistItems },
     { data: signoffs },
+    { data: exhibits },
+    { data: lntps },
   ] = await Promise.all([
     supabase.from('sites').select('*').eq('id', id).single(),
     supabase.from('tasks').select('*').eq('site_id', id).order('created_at', { ascending: false }),
@@ -38,6 +42,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
     supabase.from('lessons_learned').select('*').eq('site_id', id).order('created_at', { ascending: false }),
     supabase.from('qaqc_checklist_items').select('*').order('sort_order', { ascending: true }),
     supabase.from('qaqc_signoffs').select('*').eq('site_id', id).order('signed_off_at', { ascending: false }),
+    supabase.from('exhibits').select('*').eq('site_id', id).order('created_at', { ascending: false }),
+    supabase.from('lntps').select('*').eq('site_id', id).order('created_at', { ascending: false }),
   ]);
 
   if (!site) notFound();
@@ -56,13 +62,15 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const checklistItemList = (checklistItems ?? []) as QaqcChecklistItem[];
   const signoffList = (signoffs ?? []) as QaqcSignoff[];
   const signoffResultList = (signoffResults ?? []) as QaqcSignoffResult[];
+  const exhibitList = (exhibits ?? []) as Exhibit[];
+  const lntpList = (lntps ?? []) as Lntp[];
 
   const progress = taskList.length
     ? Math.round(taskList.reduce((s, t) => s + t.percent_complete, 0) / taskList.length)
     : 0;
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
       <Link
         href="/sites"
         className="inline-flex items-center gap-1.5 text-sm text-[var(--color-paper-dim)] hover:text-[var(--color-paper)] mb-6"
@@ -99,7 +107,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       <SiteTabs
-        siteId={siteData.id}
+        site={siteData}
         tasks={taskList}
         inspections={inspectionList}
         incidents={incidentList}
@@ -107,6 +115,8 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
         checklistItems={checklistItemList}
         signoffs={signoffList}
         signoffResults={signoffResultList}
+        exhibits={exhibitList}
+        lntps={lntpList}
         isAdmin={profile?.role === 'admin'}
       />
     </div>

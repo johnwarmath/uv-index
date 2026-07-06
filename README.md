@@ -20,6 +20,7 @@ across multiple utility-scale solar sites, with role-based access for your team.
 - **Lessons learned**: a per-site log for capturing what went well and what to improve, with a category, description, and a recommendation for future projects. Supports the same photo + geolocation capture.
 - **QAQC signoffs**: a structured checklist system seeded from a real construction QAQC template (Flow → Stage → checklist item, e.g. SWPPP → Silt Fencing → "Confirm silt fence is trenched in"). Field crews pick a Flow and Stage, tag the specific location (e.g. "Row 14" or "Pier B-12"), and check off every item as Pass / Fail / N/A, with notes on any failures. Every signoff is saved with full history, expandable to see every item's result.
 - **Installable on iPhone**: the app is a Progressive Web App (PWA) — from Safari on iPhone, tap Share → "Add to Home Screen" to get a real icon that opens full-screen, no App Store needed.
+- **Preconstruction workflow**: a dedicated tab per site for the pre-construction phase — tracks the Developer and Utility for that site, Exhibits (name, type, status: not started / drafted / executed, target date), and Limited Notices to Proceed (description, scope, status: pending / issued / complete). Includes a placeholder panel for AI-generated guidance based on location/developer/utility — the structure is in place, but the actual AI calls aren't wired up yet (see "Extending" below for what's needed to turn that on).
 
 ## Setup
 
@@ -39,6 +40,7 @@ In the Supabase dashboard, open the **SQL Editor** and run, in order:
 3. `supabase/migrations/0003_lessons_learned.sql` — lessons learned table
 4. `supabase/migrations/0004_qaqc_checklist.sql` — QAQC checklist template (seeded with 239 checklist items across 8 flows / 33 stages), signoffs, and signoff results
 5. `supabase/migrations/0005_task_flow_stage.sql` — adds Flow/Stage columns to tasks, so Progress can be grouped the same way as QAQC
+6. `supabase/migrations/0006_preconstruction.sql` — Developer/Utility fields on sites, Exhibits, and LNTPs
 
 Alternatively, with the Supabase CLI:
 
@@ -80,5 +82,6 @@ just set the same two environment variables.
 
 - **More roles** (e.g. Field Crew, Safety Officer, PM): add values to the `user_role` enum in a new migration, and extend the RLS policies / UI checks that currently branch on `role = 'admin'`.
 - **Editing the QAQC checklist template**: the checklist items live in the `qaqc_checklist_items` table — add, edit, or remove rows there (via SQL Editor or a future admin screen) to change what shows up per Flow/Stage. Existing signoffs are unaffected since they store their own snapshot of results.
+- **Turning on AI guidance for Preconstruction**: the placeholder panel in the Preconstruction tab is ready for this. To wire it up: add an `ANTHROPIC_API_KEY` environment variable (in `.env.local` and in Vercel), create a Next.js API route (e.g. `src/app/api/preconstruction-guidance/route.ts`) that calls the Anthropic API with the site's location/developer/utility as context, and call that route from the placeholder panel. Get an API key at console.anthropic.com.
 - **EXIF-based geolocation**: currently location comes from the device's live GPS at upload time (more reliable — most phones strip GPS from photo files before sharing). If you also want to read embedded EXIF GPS tags as a fallback, a library like `exifr` can parse that client-side before upload.
 - **Email notifications** on new incidents: use a Supabase Database Webhook or Edge Function triggered on insert to `safety_incidents`.

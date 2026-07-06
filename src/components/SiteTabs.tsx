@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import PreconstructionTab from '@/components/PreconstructionTab';
 import TaskList from '@/components/TaskList';
 import QcList from '@/components/QcList';
 import IncidentList from '@/components/IncidentList';
 import LessonsLearnedList from '@/components/LessonsLearnedList';
 import QaqcSignoffTab from '@/components/QaqcSignoffTab';
 import type {
+  Site,
   Task,
   QcInspection,
   SafetyIncident,
@@ -15,6 +17,8 @@ import type {
   QaqcChecklistItem,
   QaqcSignoff,
   QaqcSignoffResult,
+  Exhibit,
+  Lntp,
 } from '@/types';
 
 const SiteMap = dynamic(() => import('@/components/SiteMap'), {
@@ -27,6 +31,7 @@ const SiteMap = dynamic(() => import('@/components/SiteMap'), {
 });
 
 const tabs = [
+  { key: 'preconstruction', label: 'Preconstruction' },
   { key: 'progress', label: 'Progress' },
   { key: 'qc', label: 'Quality control' },
   { key: 'qaqc', label: 'QAQC signoff' },
@@ -38,7 +43,7 @@ const tabs = [
 type TabKey = (typeof tabs)[number]['key'];
 
 export default function SiteTabs({
-  siteId,
+  site,
   tasks,
   inspections,
   incidents,
@@ -46,9 +51,11 @@ export default function SiteTabs({
   checklistItems,
   signoffs,
   signoffResults,
+  exhibits,
+  lntps,
   isAdmin,
 }: {
-  siteId: string;
+  site: Site;
   tasks: Task[];
   inspections: QcInspection[];
   incidents: SafetyIncident[];
@@ -56,11 +63,14 @@ export default function SiteTabs({
   checklistItems: QaqcChecklistItem[];
   signoffs: QaqcSignoff[];
   signoffResults: QaqcSignoffResult[];
+  exhibits: Exhibit[];
+  lntps: Lntp[];
   isAdmin: boolean;
 }) {
-  const [tab, setTab] = useState<TabKey>('progress');
+  const [tab, setTab] = useState<TabKey>('preconstruction');
 
   const counts: Record<TabKey, number> = {
+    preconstruction: exhibits.length + lntps.length,
     progress: tasks.length,
     qc: inspections.length,
     qaqc: signoffs.length,
@@ -71,12 +81,12 @@ export default function SiteTabs({
 
   return (
     <div>
-      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6 flex-wrap">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6 overflow-x-auto no-scrollbar">
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`relative px-4 py-2.5 text-sm font-medium transition ${
+            className={`relative px-4 py-2.5 text-sm font-medium whitespace-nowrap shrink-0 transition ${
               tab === t.key ? 'text-[var(--color-paper)]' : 'text-[var(--color-paper-dim)] hover:text-[var(--color-paper)]'
             }`}
           >
@@ -99,19 +109,24 @@ export default function SiteTabs({
         ))}
       </div>
 
-      {tab === 'progress' && <TaskList siteId={siteId} tasks={tasks} checklistItems={checklistItems} isAdmin={isAdmin} />}
-      {tab === 'qc' && <QcList siteId={siteId} inspections={inspections} isAdmin={isAdmin} />}
+      {tab === 'preconstruction' && (
+        <PreconstructionTab site={site} exhibits={exhibits} lntps={lntps} isAdmin={isAdmin} />
+      )}
+      {tab === 'progress' && (
+        <TaskList siteId={site.id} tasks={tasks} checklistItems={checklistItems} isAdmin={isAdmin} />
+      )}
+      {tab === 'qc' && <QcList siteId={site.id} inspections={inspections} isAdmin={isAdmin} />}
       {tab === 'qaqc' && (
         <QaqcSignoffTab
-          siteId={siteId}
+          siteId={site.id}
           checklistItems={checklistItems}
           signoffs={signoffs}
           signoffResults={signoffResults}
           isAdmin={isAdmin}
         />
       )}
-      {tab === 'safety' && <IncidentList siteId={siteId} incidents={incidents} isAdmin={isAdmin} />}
-      {tab === 'lessons' && <LessonsLearnedList siteId={siteId} lessons={lessons} isAdmin={isAdmin} />}
+      {tab === 'safety' && <IncidentList siteId={site.id} incidents={incidents} isAdmin={isAdmin} />}
+      {tab === 'lessons' && <LessonsLearnedList siteId={site.id} lessons={lessons} isAdmin={isAdmin} />}
       {tab === 'map' && <SiteMap inspections={inspections} incidents={incidents} />}
     </div>
   );

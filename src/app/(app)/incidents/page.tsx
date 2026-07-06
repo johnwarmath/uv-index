@@ -20,7 +20,7 @@ export default async function IncidentsPage() {
   }));
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
       <div className="mb-8">
         <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-incident-bright)] mb-1">
           {incidentList.filter((i) => i.status === 'open' || i.status === 'investigating').length} open

@@ -1,4 +1,4 @@
-import type { SiteStatus, TaskStatus, QcResult, IncidentSeverity, IncidentStatus, LessonType } from '@/types';
+import type { SiteStatus, TaskStatus, QcResult, IncidentSeverity, IncidentStatus, LessonType, ExhibitStatus, LntpStatus } from '@/types';
 
 const siteStatusStyles: Record<SiteStatus, string> = {
   planning: 'bg-[var(--color-blocked)]/20 text-[var(--color-blocked)] border-[var(--color-blocked)]/40',
@@ -40,6 +40,18 @@ const lessonTypeStyles: Record<LessonType, string> = {
   improvement_area: 'bg-[var(--color-amber)]/15 text-[var(--color-amber)] border-[var(--color-amber)]/40',
 };
 
+const exhibitStatusStyles: Record<ExhibitStatus, string> = {
+  not_started: 'bg-[var(--color-blocked)]/20 text-[var(--color-blocked)] border-[var(--color-blocked)]/40',
+  drafted: 'bg-[var(--color-amber)]/15 text-[var(--color-amber)] border-[var(--color-amber)]/40',
+  executed: 'bg-[var(--color-working-bright)]/20 text-[var(--color-working-bright)] border-[var(--color-working-bright)]/40',
+};
+
+const lntpStatusStyles: Record<LntpStatus, string> = {
+  pending: 'bg-[var(--color-blocked)]/20 text-[var(--color-blocked)] border-[var(--color-blocked)]/40',
+  issued: 'bg-[var(--color-amber)]/15 text-[var(--color-amber)] border-[var(--color-amber)]/40',
+  complete: 'bg-[var(--color-working-bright)]/20 text-[var(--color-working-bright)] border-[var(--color-working-bright)]/40',
+};
+
 function labelize(s: string) {
   return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -76,4 +88,12 @@ export function LessonTypeBadge({ type }: { type: LessonType }) {
   return (
     <Badge className={lessonTypeStyles[type]}>{type === 'went_well' ? 'Went well' : 'Improvement area'}</Badge>
   );
+}
+
+export function ExhibitStatusBadge({ status }: { status: ExhibitStatus }) {
+  return <Badge className={exhibitStatusStyles[status]}>{labelize(status)}</Badge>;
+}
+
+export function LntpStatusBadge({ status }: { status: LntpStatus }) {
+  return <Badge className={lntpStatusStyles[status]}>{labelize(status)}</Badge>;
 }
