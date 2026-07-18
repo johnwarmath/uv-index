@@ -6,7 +6,7 @@ import { ArrowLeft, MapPin, Zap, Calendar } from 'lucide-react';
 import PanelStrip from '@/components/PanelStrip';
 import StageProgressBreakdown from '@/components/StageProgressBreakdown';
 import WeatherForecast from '@/components/WeatherForecast';
-import { SiteStatusBadge } from '@/components/Badges';
+import { SiteStatusBadge, ProjectTypeBadge } from '@/components/Badges';
 import ArchiveSiteButton from '@/components/ArchiveSiteButton';
 import EditSiteButton from '@/components/EditSiteButton';
 import SiteTabs from '@/components/SiteTabs';
@@ -65,7 +65,9 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
   const inspectionList = (inspections ?? []) as QcInspection[];
   const incidentList = (incidents ?? []) as SafetyIncident[];
   const lessonList = (lessons ?? []) as LessonLearned[];
-  const checklistItemList = (checklistItems ?? []) as QaqcChecklistItem[];
+  const checklistItemList = ((checklistItems ?? []) as QaqcChecklistItem[]).filter(
+    (i) => i.project_type === siteData.project_type
+  );
   const signoffList = (signoffs ?? []) as QaqcSignoff[];
   const signoffResultList = (signoffResults ?? []) as QaqcSignoffResult[];
   const exhibitList = (exhibits ?? []) as Exhibit[];
@@ -99,6 +101,7 @@ export default async function SiteDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <ProjectTypeBadge type={siteData.project_type} />
             <SiteStatusBadge status={siteData.status} />
             <EditSiteButton site={siteData} />
             <ArchiveSiteButton siteId={siteData.id} archived={siteData.archived} />

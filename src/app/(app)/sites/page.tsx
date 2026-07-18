@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import PanelStrip from '@/components/PanelStrip';
-import { SiteStatusBadge } from '@/components/Badges';
+import { SiteStatusBadge, ProjectTypeBadge } from '@/components/Badges';
 import NewSiteButton from '@/components/NewSiteButton';
 import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
 import type { Site, Task, QaqcChecklistItem, QaqcSignoff, QaqcSignoffResult } from '@/types';
@@ -76,7 +76,8 @@ export default async function SitesPage({
             const siteSignoffIds = signoffList.filter((s) => s.site_id === site.id).map((s) => s.id);
             const siteSignoffResults = signoffResultList.filter((r) => siteSignoffIds.includes(r.signoff_id));
             const constructionPercent = computeConstructionPercent(siteTasks);
-            const qaqcPercent = computeQaqcPercent(checklistItemList, siteSignoffResults);
+            const siteChecklistItems = checklistItemList.filter((i) => i.project_type === site.project_type);
+            const qaqcPercent = computeQaqcPercent(siteChecklistItems, siteSignoffResults);
             return (
               <Link
                 key={site.id}
@@ -90,7 +91,10 @@ export default async function SitesPage({
                     <p className="font-display font-semibold text-lg">{site.name}</p>
                     <p className="text-xs text-[var(--color-paper-dim)]">{site.location || 'No location set'}</p>
                   </div>
-                  <SiteStatusBadge status={site.status} />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <ProjectTypeBadge type={site.project_type} />
+                    <SiteStatusBadge status={site.status} />
+                  </div>
                 </div>
                 <div className="space-y-1.5 mb-3">
                   <div className="flex items-center gap-3">

@@ -24,6 +24,7 @@ across multiple utility-scale solar sites, with role-based access for your team.
 - **5-day weather forecast**: each site shows high/low temperature, max wind speed, and heat/cold index for the next 5 days. Enter a ZIP code (in the New Site form or the Preconstruction tab) for precise geocoding — falls back to the free-text location field if no ZIP is set. Uses Zippopotam.us for ZIP lookup and Open-Meteo for the forecast (both free, no API key required). Heat index ≥100°F and cold index ≤20°F are flagged, since both affect job-site safety protocols.
 - **Archive sites**: any site can be archived (button in its header) without deleting its data — archived sites drop out of the Sites list, Dashboard, and all aggregate stats by default, with a link to view them separately. Restorable at any time.
 - **Edit sites after creation**: an "Edit site" button in the site header opens every site field for editing — name, location, ZIP, capacity, status, target date, and the three project parties: Developer, EPC, and Utility. All three can also be set at creation time.
+- **Project types**: each site is either a **Solar farm** or an **EV charger** project, chosen at creation. Each type has its own QAQC checklist template — solar sites use the 239-item solar template; EV charger sites use a 41-item template (Civil/Sitework, Utility Service, Battery System, EV Charger, Site Safety) generated from a real EV charging station's civil and electrical plans. Progress tasks, QAQC signoffs, and the stage-by-stage breakdown all automatically scope to whichever template matches the site.
 - **Lessons learned, portfolio-wide**: a dedicated "Lessons" page (like Safety Incidents) shows every lesson across all sites, and the Dashboard has a "Recent lessons learned" panel alongside Recent incidents.
 
 ## Setup
@@ -48,6 +49,7 @@ In the Supabase dashboard, open the **SQL Editor** and run, in order:
 7. `supabase/migrations/0007_site_zip_code.sql` — adds a ZIP code field to sites for precise weather geocoding
 8. `supabase/migrations/0008_site_archive.sql` — adds an archived flag to sites
 9. `supabase/migrations/0009_site_epc.sql` — adds an EPC (contractor) field to sites
+10. `supabase/migrations/0010_project_types.sql` — adds Solar/EV Charger project types, seeded with the EV Charger checklist template
 
 Alternatively, with the Supabase CLI:
 
@@ -88,7 +90,9 @@ just set the same two environment variables.
 ## Extending
 
 - **More roles** (e.g. Field Crew, Safety Officer, PM): add values to the `user_role` enum in a new migration, and extend the RLS policies / UI checks that currently branch on `role = 'admin'`.
-- **Editing the QAQC checklist template**: the checklist items live in the `qaqc_checklist_items` table — add, edit, or remove rows there (via SQL Editor or a future admin screen) to change what shows up per Flow/Stage. Existing signoffs are unaffected since they store their own snapshot of results.
+- **Editing the QAQC checklist template**: the checklist items live in the `qaqc_checklist_items` table, each tagged with a `project_type` ('solar' or 'ev_charger') — add, edit, or remove rows there (via SQL Editor or a future admin screen) to change what shows up per Flow/Stage. Existing signoffs are unaffected since they store their own snapshot of results.
+- **Adding more project types**: add a new value to the `project_type` enum in a migration, seed `qaqc_checklist_items` with that type's Flow/Stage/item rows, and add an option to the Project Type picker in `NewSiteButton.tsx`. Everything else (Progress, QAQC Signoff, Stage breakdown) automatically scopes to whichever type a site has, so no other changes are needed.
+- **Changing a site's project type after creation isn't supported by design**: existing tasks and signoffs are tied to the checklist template that was active at creation, so switching types on an existing site would orphan that data. If a site was set up wrong, the cleanest fix is archiving it and creating a new one with the correct type.
 - **Turning on AI guidance for Preconstruction**: the placeholder panel in the Preconstruction tab is ready for this. To wire it up: add an `ANTHROPIC_API_KEY` environment variable (in `.env.local` and in Vercel), create a Next.js API route (e.g. `src/app/api/preconstruction-guidance/route.ts`) that calls the Anthropic API with the site's location/developer/utility as context, and call that route from the placeholder panel. Get an API key at console.anthropic.com.
 - **EXIF-based geolocation**: currently location comes from the device's live GPS at upload time (more reliable — most phones strip GPS from photo files before sharing). If you also want to read embedded EXIF GPS tags as a fallback, a library like `exifr` can parse that client-side before upload.
 - **Email notifications** on new incidents: use a Supabase Database Webhook or Edge Function triggered on insert to `safety_incidents`.

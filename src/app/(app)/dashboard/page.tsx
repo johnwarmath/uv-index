@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentProfile } from '@/lib/auth';
 import Link from 'next/link';
 import PanelStrip from '@/components/PanelStrip';
-import { SiteStatusBadge, IncidentSeverityBadge, LessonTypeBadge } from '@/components/Badges';
+import { SiteStatusBadge, ProjectTypeBadge, IncidentSeverityBadge, LessonTypeBadge } from '@/components/Badges';
 import { ArrowUpRight, ShieldAlert, ClipboardCheck, MapPin, TrendingUp, Lightbulb } from 'lucide-react';
 import { computeConstructionPercent, computeQaqcPercent } from '@/lib/progress';
 import type {
@@ -57,7 +57,16 @@ export default async function DashboardPage() {
   const signoffResultList = (signoffResults ?? []) as QaqcSignoffResult[];
 
   const avgProgress = computeConstructionPercent(taskList);
-  const avgQaqc = computeQaqcPercent(checklistItemList, signoffResultList);
+  const avgQaqc = activeSites.length
+    ? Math.round(
+        activeSites.reduce((sum, s) => {
+          const siteChecklistItems = checklistItemList.filter((i) => i.project_type === s.project_type);
+          const siteSignoffIds = signoffList.filter((sg) => sg.site_id === s.id).map((sg) => sg.id);
+          const siteSignoffResults = signoffResultList.filter((r) => siteSignoffIds.includes(r.signoff_id));
+          return sum + computeQaqcPercent(siteChecklistItems, siteSignoffResults);
+        }, 0) / activeSites.length
+      )
+    : 0;
   const openIncidents = incidentList.filter((i) => i.status === 'open' || i.status === 'investigating');
   const qcFailRate = qcList.length
     ? Math.round((qcList.filter((q) => q.result === 'fail').length / qcList.length) * 100)
@@ -113,7 +122,8 @@ export default async function DashboardPage() {
               const siteSignoffIds = signoffList.filter((s) => s.site_id === site.id).map((s) => s.id);
               const siteSignoffResults = signoffResultList.filter((r) => siteSignoffIds.includes(r.signoff_id));
               const constructionPercent = computeConstructionPercent(siteTasks);
-              const qaqcPercent = computeQaqcPercent(checklistItemList, siteSignoffResults);
+              const siteChecklistItems = checklistItemList.filter((i) => i.project_type === site.project_type);
+              const qaqcPercent = computeQaqcPercent(siteChecklistItems, siteSignoffResults);
               return (
                 <Link
                   key={site.id}
@@ -125,7 +135,10 @@ export default async function DashboardPage() {
                       <p className="font-display font-semibold">{site.name}</p>
                       <p className="text-xs text-[var(--color-paper-dim)]">{site.location || 'No location set'}</p>
                     </div>
-                    <SiteStatusBadge status={site.status} />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <ProjectTypeBadge type={site.project_type} />
+                      <SiteStatusBadge status={site.status} />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-3">

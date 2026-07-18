@@ -1,4 +1,4 @@
-import type { SiteStatus, TaskStatus, QcResult, IncidentSeverity, IncidentStatus, LessonType, ExhibitStatus, LntpStatus } from '@/types';
+import type { SiteStatus, TaskStatus, QcResult, IncidentSeverity, IncidentStatus, LessonType, ExhibitStatus, LntpStatus, ProjectType } from '@/types';
 
 const siteStatusStyles: Record<SiteStatus, string> = {
   planning: 'bg-[var(--color-blocked)]/20 text-[var(--color-blocked)] border-[var(--color-blocked)]/40',
@@ -96,4 +96,13 @@ export function ExhibitStatusBadge({ status }: { status: ExhibitStatus }) {
 
 export function LntpStatusBadge({ status }: { status: LntpStatus }) {
   return <Badge className={lntpStatusStyles[status]}>{labelize(status)}</Badge>;
+}
+
+const projectTypeStyles: Record<ProjectType, string> = {
+  solar: 'bg-[var(--color-amber)]/15 text-[var(--color-amber)] border-[var(--color-amber)]/40',
+  ev_charger: 'bg-[var(--color-working-bright)]/20 text-[var(--color-working-bright)] border-[var(--color-working-bright)]/40',
+};
+
+export function ProjectTypeBadge({ type }: { type: ProjectType }) {
+  return <Badge className={projectTypeStyles[type]}>{type === 'solar' ? 'Solar farm' : 'EV charger'}</Badge>;
 }

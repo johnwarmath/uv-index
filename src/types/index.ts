@@ -1,5 +1,6 @@
 export type UserRole = 'admin' | 'standard';
 export type SiteStatus = 'planning' | 'construction' | 'commissioning' | 'operational' | 'on_hold';
+export type ProjectType = 'solar' | 'ev_charger';
 export type TaskStatus = 'not_started' | 'in_progress' | 'blocked' | 'complete';
 export type QcResult = 'pass' | 'fail' | 'na';
 export type IncidentSeverity = 'near_miss' | 'minor' | 'serious' | 'critical';
@@ -23,6 +24,7 @@ export interface Site {
   zip_code: string;
   capacity_mw: number | null;
   status: SiteStatus;
+  project_type: ProjectType;
   target_completion: string | null;
   developer: string;
   utility: string;
@@ -104,6 +106,7 @@ export interface QaqcChecklistItem {
   stage: string;
   item_text: string;
   sort_order: number;
+  project_type: ProjectType;
 }
 
 export interface QaqcSignoff {

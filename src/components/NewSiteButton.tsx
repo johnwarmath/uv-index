@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Plus, X, ChevronDown, ChevronRight, Check } from 'lucide-react';
-import type { SiteStatus, QaqcChecklistItem } from '@/types';
+import type { SiteStatus, ProjectType, QaqcChecklistItem } from '@/types';
 
 export default function NewSiteButton({ checklistItems }: { checklistItems: QaqcChecklistItem[] }) {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
   const [zipCode, setZipCode] = useState('');
   const [capacity, setCapacity] = useState('');
   const [status, setStatus] = useState<SiteStatus>('planning');
+  const [projectType, setProjectType] = useState<ProjectType>('solar');
   const [targetDate, setTargetDate] = useState('');
   const [developer, setDeveloper] = useState('');
   const [epc, setEpc] = useState('');
@@ -28,7 +29,11 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
   const [collapsedFlows, setCollapsedFlows] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
 
-  const flows = useMemo(() => Array.from(new Set(checklistItems.map((i) => i.flow))), [checklistItems]);
+  const itemsForType = useMemo(
+    () => checklistItems.filter((i) => i.project_type === projectType),
+    [checklistItems, projectType]
+  );
+  const flows = useMemo(() => Array.from(new Set(itemsForType.map((i) => i.flow))), [itemsForType]);
 
   function resetAll() {
     setName('');
@@ -36,6 +41,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
     setZipCode('');
     setCapacity('');
     setStatus('planning');
+    setProjectType('solar');
     setTargetDate('');
     setDeveloper('');
     setEpc('');
@@ -43,6 +49,11 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
     setSelected(new Set());
     setStep('details');
     setError(null);
+  }
+
+  function handleProjectTypeChange(type: ProjectType) {
+    setProjectType(type);
+    setSelected(new Set());
   }
 
   function handleNext(e: React.FormEvent) {
@@ -106,6 +117,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
         capacity_mw: capacity ? parseFloat(capacity) : null,
         status,
         target_completion: targetDate || null,
+        project_type: projectType,
         developer,
         epc,
         utility,
@@ -121,7 +133,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
     }
 
     if (selected.size > 0) {
-      const selectedItems = checklistItems.filter((i) => selected.has(i.id));
+      const selectedItems = itemsForType.filter((i) => selected.has(i.id));
       const taskRows = selectedItems.map((item) => ({
         site_id: site.id,
         title: item.item_text,
@@ -186,6 +198,24 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
                     placeholder="Mesquite Ridge Solar"
                     className="input"
                   />
+                </Field>
+                <Field label="Project type">
+                  <div className="flex gap-2">
+                    {(['solar', 'ev_charger'] as ProjectType[]).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => handleProjectTypeChange(t)}
+                        className={`flex-1 rounded border px-3 py-1.5 text-sm font-medium transition ${
+                          projectType === t
+                            ? 'border-[var(--color-amber)] bg-[var(--color-amber)]/15 text-[var(--color-amber)]'
+                            : 'border-[var(--color-border)] text-[var(--color-paper-dim)] hover:bg-[var(--color-bg)]'
+                        }`}
+                      >
+                        {t === 'solar' ? 'Solar farm' : 'EV charger'}
+                      </button>
+                    ))}
+                  </div>
                 </Field>
                 <Field label="Location">
                   <input
@@ -296,7 +326,7 @@ export default function NewSiteButton({ checklistItems }: { checklistItems: Qaqc
               <>
                 <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-2">
                   {flows.map((flow) => {
-                    const flowItems = checklistItems.filter((i) => i.flow === flow);
+                    const flowItems = itemsForType.filter((i) => i.flow === flow);
                     const flowAllSelected = flowItems.every((i) => selected.has(i.id));
                     const flowSomeSelected = flowItems.some((i) => selected.has(i.id));
                     const stages = Array.from(new Set(flowItems.map((i) => i.stage)));
