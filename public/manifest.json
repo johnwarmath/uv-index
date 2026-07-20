@@ -1,6 +1,6 @@
 {
-  "name": "UV Index",
-  "short_name": "UV Index",
+  "name": "Bolt Energy",
+  "short_name": "Bolt Energy",
   "description": "Track progress, quality control, and safety across utility solar sites.",
   "start_url": "/dashboard",
   "display": "standalone",

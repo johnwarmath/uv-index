@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Sun } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,9 +33,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--color-amber)]">
-            <Sun size={18} className="text-[var(--color-bg)]" strokeWidth={2.5} />
+            <Zap size={18} className="text-[var(--color-bg)]" strokeWidth={2.5} />
           </div>
-          <span className="font-display text-xl font-semibold tracking-tight">UV Index</span>
+          <span className="font-display text-xl font-semibold tracking-tight">Bolt Energy</span>
         </div>
 
         <h1 className="font-display text-2xl font-semibold mb-1">Sign in</h1>

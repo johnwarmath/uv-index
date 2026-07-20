@@ -1,4 +1,4 @@
-# UV Index — Utility Solar Project Tracker
+# Bolt Energy — Utility Solar Project Tracker
 
 Track construction progress, quality control inspections, and safety incidents
 across multiple utility-scale solar sites, with role-based access for your team.

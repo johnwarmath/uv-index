@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { LayoutDashboard, Sun, ShieldAlert, MapPin, LogOut, ShieldCheck, Lightbulb } from 'lucide-react';
+import { LayoutDashboard, Zap, ShieldAlert, MapPin, LogOut, ShieldCheck, Lightbulb } from 'lucide-react';
 import type { Profile } from '@/types';
 
 const nav = [
@@ -40,9 +40,9 @@ export default function AppShell({
       <aside className="hidden md:flex w-60 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-bg-raised)] flex-col">
         <div className="h-16 flex items-center gap-2.5 px-5 border-b border-[var(--color-border)]">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--color-amber)]">
-            <Sun size={16} className="text-[var(--color-bg)]" strokeWidth={2.5} />
+            <Zap size={16} className="text-[var(--color-bg)]" strokeWidth={2.5} />
           </div>
-          <span className="font-display text-lg font-semibold tracking-tight">UV Index</span>
+          <span className="font-display text-lg font-semibold tracking-tight">Bolt Energy</span>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -93,9 +93,9 @@ export default function AppShell({
       <header className="md:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 border-b border-[var(--color-border)] bg-[var(--color-bg-raised)]/95 backdrop-blur">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-amber)]">
-            <Sun size={14} className="text-[var(--color-bg)]" strokeWidth={2.5} />
+            <Zap size={14} className="text-[var(--color-bg)]" strokeWidth={2.5} />
           </div>
-          <span className="font-display text-base font-semibold tracking-tight">UV Index</span>
+          <span className="font-display text-base font-semibold tracking-tight">Bolt Energy</span>
         </div>
         <button
           onClick={handleSignOut}

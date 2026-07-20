@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UV Index — Solar Project Tracker",
+  title: "Bolt Energy — Solar Project Tracker",
   description: "Track progress, quality control, and safety across utility solar sites.",
   manifest: "/manifest.json",
   icons: {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "UV Index",
+    title: "Bolt Energy",
   },
 };
 
