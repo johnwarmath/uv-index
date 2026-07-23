@@ -276,7 +276,7 @@ export default function TaskList({
                                   )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-3 mb-2">
                                 <PanelStrip percent={task.percent_complete} segments={20} />
                                 <input
                                   type="range"
@@ -295,11 +295,22 @@ export default function TaskList({
                                 <span className="font-mono text-xs text-[var(--color-paper-dim)] w-9 shrink-0">
                                   {task.percent_complete}%
                                 </span>
-                                {task.due_date && (
-                                  <span className="font-mono text-xs text-[var(--color-paper-dim)] shrink-0">
-                                    Due {new Date(task.due_date).toLocaleDateString()}
+                              </div>
+                              <div className="flex items-center justify-between gap-3 flex-wrap">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)]">
+                                    Due
                                   </span>
-                                )}
+                                  <input
+                                    type="date"
+                                    value={task.due_date ?? ''}
+                                    onChange={(e) => updateTask(task.id, { due_date: e.target.value || null })}
+                                    className="rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-1.5 py-0.5 text-xs outline-none focus:border-[var(--color-amber)]"
+                                  />
+                                </div>
+                                <span className="font-mono text-[10px] text-[var(--color-paper-dim)]">
+                                  Updated {new Date(task.updated_at).toLocaleDateString()}
+                                </span>
                               </div>
                             </div>
                           ))}

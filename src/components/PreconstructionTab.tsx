@@ -24,6 +24,7 @@ export default function PreconstructionTab({
   const [exhibitName, setExhibitName] = useState('');
   const [exhibitType, setExhibitType] = useState('general');
   const [exhibitDate, setExhibitDate] = useState('');
+  const [exhibitNotes, setExhibitNotes] = useState('');
   const [exhibitLoading, setExhibitLoading] = useState(false);
 
   async function addExhibit(e: React.FormEvent) {
@@ -38,12 +39,14 @@ export default function PreconstructionTab({
       name: exhibitName,
       type: exhibitType,
       target_date: exhibitDate || null,
+      notes: exhibitNotes,
       created_by: user?.id,
     });
     setExhibitLoading(false);
     setExhibitName('');
     setExhibitType('general');
     setExhibitDate('');
+    setExhibitNotes('');
     setExhibitOpen(false);
     router.refresh();
   }
@@ -211,6 +214,18 @@ export default function PreconstructionTab({
                 className="rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)]"
               />
             </div>
+            <div>
+              <label className="block text-[10px] font-mono uppercase tracking-wide text-[var(--color-paper-dim)] mb-1">
+                Notes
+              </label>
+              <textarea
+                value={exhibitNotes}
+                onChange={(e) => setExhibitNotes(e.target.value)}
+                rows={4}
+                placeholder="Specs, work order details, reference numbers, etc."
+                className="w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--color-amber)] resize-none"
+              />
+            </div>
             <div className="flex gap-2">
               <button
                 type="submit"
@@ -266,6 +281,9 @@ export default function PreconstructionTab({
                     )}
                   </div>
                 </div>
+                {ex.notes && (
+                  <p className="text-xs text-[var(--color-paper-dim)] mt-2 whitespace-pre-wrap">{ex.notes}</p>
+                )}
               </div>
             ))}
           </div>
