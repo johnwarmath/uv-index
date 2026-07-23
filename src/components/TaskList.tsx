@@ -292,9 +292,25 @@ export default function TaskList({
                                   }}
                                   className="w-24 accent-[var(--color-amber)]"
                                 />
-                                <span className="font-mono text-xs text-[var(--color-paper-dim)] w-9 shrink-0">
-                                  {task.percent_complete}%
-                                </span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    value={task.percent_complete}
+                                    onChange={(e) => {
+                                      const raw = e.target.value;
+                                      if (raw === '') return;
+                                      const percent = Math.max(0, Math.min(100, parseInt(raw) || 0));
+                                      updateTask(task.id, {
+                                        percent_complete: percent,
+                                        status: percent === 100 ? 'complete' : percent === 0 ? 'not_started' : 'in_progress',
+                                      });
+                                    }}
+                                    className="w-12 rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-1.5 py-0.5 text-xs font-mono text-right outline-none focus:border-[var(--color-amber)]"
+                                  />
+                                  <span className="font-mono text-xs text-[var(--color-paper-dim)]">%</span>
+                                </div>
                               </div>
                               <div className="flex items-center justify-between gap-3 flex-wrap">
                                 <div className="flex items-center gap-1.5">
